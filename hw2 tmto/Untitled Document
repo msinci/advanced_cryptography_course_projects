@@ -1,0 +1,125 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <openssl/des.h>
+
+char *
+Encrypt(char *Key, char *Msg, int size, char* Res2) {
+
+	static char* Res;
+	int n = 0;
+	DES_cblock Key2;
+	DES_key_schedule schedule;
+
+	Res = (char *) malloc(size);
+
+	/* Prepare the key for use with DES_cfb64_encrypt */
+	memcpy(Key2, Key, 8);
+	DES_set_odd_parity(&Key2);
+	DES_set_key_checked(&Key2, &schedule);
+
+	/* Encryption occurs here */
+	DES_cfb64_encrypt((unsigned char *) Msg, (unsigned char *) Res, size, 	&schedule, &Key2, &n, DES_ENCRYPT);
+	DES_ecb_encrypt((const_DES_cblock *) Msg, (DES_cblock *) Res2, &schedule, 1);
+
+	return (Res);
+}
+
+char *
+Decrypt(char *Key, char *Msg, int size) {
+
+	static char* Res;
+	int n = 0;
+
+	DES_cblock Key2;
+	DES_key_schedule schedule;
+
+	Res = (char *) malloc(size);
+
+	/* Prepare the key for use with DES_cfb64_encrypt */
+	memcpy(Key2, Key, 8);
+	DES_set_odd_parity(&Key2);
+	DES_set_key_checked(&Key2, &schedule);
+
+	/* Decryption occurs here */
+	DES_cfb64_encrypt((unsigned char *) Msg, (unsigned char *) Res, size,	&schedule, &Key2, &n, DES_DECRYPT);
+
+	return (Res);
+
+}
+int main() {
+
+	char key[] = "password";
+	char clear[] = "This is a secret message";
+	char *decrypted;
+	char *encrypted;
+	char Res2[16];
+	encrypted = malloc(sizeof(clear));
+	decrypted = malloc(sizeof(clear));
+
+	printf("Clear text\t : %s \n", clear);
+	memcpy(encrypted, Encrypt(key, clear, sizeof(clear),Res2), sizeof(clear));
+	printf("Encrypted text\t \t: %s \n", encrypted);
+	memcpy(decrypted, Decrypt(key, encrypted, sizeof(clear)), sizeof(clear));
+	printf("Decrypted text\t \t: %s \n", decrypted);
+
+
+	printf("ECB Encrypted text\t: %s \n", Res2);
+
+	return (0);
+}
+
+/*
+ ============================================================================
+ Name        : hw2.c
+ Author      : MSI
+ Version     :
+ Copyright   : Your copyright notice
+ Description : Hello World in C, Ansi-style
+ ============================================================================
+ */
+//
+//#include <stdio.h>
+//#include <openssl/des.h>
+//
+//typedef struct{
+//  DES_cblock SP;
+//  DES_cblock EP;
+//} Table;
+//
+//DES_cblock reduct(DES_cblock input,DES_cblock output);
+//
+//
+//int main() {
+//
+//	DES_cblock plaintext, cyphertext, key, ks, temp, iszero;
+//	Table table[1024];
+//
+//	int i,k;
+//	printf("Here we go!");
+//
+//	for (k=0;k<1024;k++){
+//		DES_random_key(&(table[k].SP));
+//	}
+//
+//	for(i=0;i<1024;i++){
+//		while (iszero!=0){
+//		//	des(plaintext,cyphertext,ks,1);
+//		//	DES_set_key_unchecked (table[i][0], schedule);
+//		//	DES_ecb_encrypt(plaintext, cyphertext, ks, 1);
+//		//	// the last parameter, 1 controls the encryption/decryption selection
+//		//	temp = reduct(cyphertext); // to implement rainbow table, just add i here
+//		//	iszero = temp & ((1 << 6) -1); // last 6 bits are kept, rest zeroed
+//		}
+//		table[i].EP=temp;
+//		printf("row &d", i);
+//	}
+//
+//return 0;
+//}
+//
+//
+//DES_cblock reduct(DES_cblock input,DES_cblock output){
+//	output = input & ((1 << 34) -1); //fix this
+//	return 0;
+//}
